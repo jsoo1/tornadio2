@@ -26,7 +26,6 @@ import traceback
 
 import tornado
 from tornado.web import HTTPError
-from tornado import stack_context
 from tornado.websocket import WebSocketHandler
 
 from tornadio2 import proto
@@ -53,36 +52,35 @@ class TornadioWebSocketHandler(WebSocketHandler):
     # Additional verification of the websocket handshake
     # For now it will stay here, till https://github.com/facebook/tornado/pull/415
     # is merged.
-    def _execute(self, transforms, *args, **kwargs):
-        with stack_context.ExceptionStackContext(self._handle_websocket_exception):
-            # Websocket only supports GET method
-            if self.request.method != 'GET':
-                self.stream.write(tornado.escape.utf8(
-                    "HTTP/1.1 405 Method Not Allowed\r\n\r\n"
-                ))
-                self.stream.close()
-                return
+    async def _execute(self, transforms, *args, **kwargs):
+        # Websocket only supports GET method
+        if self.request.method != 'GET':
+                  self.stream.write(tornado.escape.utf8(
+                      "HTTP/1.1 405 Method Not Allowed\r\n\r\n"
+                  ))
+                  self.stream.close()
+                  return
 
-            # Upgrade header should be present and should be equal to WebSocket
-            if self.request.headers.get("Upgrade", "").lower() != 'websocket':
-                self.stream.write(tornado.escape.utf8(
-                    "HTTP/1.1 400 Bad Request\r\n\r\n"
-                    "Can \"Upgrade\" only to \"WebSocket\"."
-                ))
-                self.stream.close()
-                return
+        # Upgrade header should be present and should be equal to WebSocket
+        if self.request.headers.get("Upgrade", "").lower() != 'websocket':
+                  self.stream.write(tornado.escape.utf8(
+                      "HTTP/1.1 400 Bad Request\r\n\r\n"
+                      "Can \"Upgrade\" only to \"WebSocket\"."
+                  ))
+                  self.stream.close()
+                  return
 
-            # Connection header should be upgrade. Some proxy servers/load balancers
-            # might mess with it.
-            if self.request.headers.get("Connection", "").lower().find('upgrade') == -1:
-                self.stream.write(tornado.escape.utf8(
-                    "HTTP/1.1 400 Bad Request\r\n\r\n"
-                    "\"Connection\" must be \"Upgrade\"."
-                ))
-                self.stream.close()
-                return
+        # Connection header should be upgrade. Some proxy servers/load balancers
+        # might mess with it.
+        if self.request.headers.get("Connection", "").lower().find('upgrade') == -1:
+                  self.stream.write(tornado.escape.utf8(
+                      "HTTP/1.1 400 Bad Request\r\n\r\n"
+                      "\"Connection\" must be \"Upgrade\"."
+                  ))
+                  self.stream.close()
+                  return
 
-            super(TornadioWebSocketHandler, self)._execute(transforms, *args, **kwargs)
+        super(TornadioWebSocketHandler, self)._execute(transforms, *args, **kwargs)
 
     def open(self, session_id):
         """WebSocket open handler"""
