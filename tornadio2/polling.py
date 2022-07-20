@@ -24,7 +24,7 @@ import time
 import logging
 import urllib
 
-from tornado.web import HTTPError, asynchronous
+from tornado.web import HTTPError
 
 from tornadio2 import proto, preflight, stats
 
@@ -66,8 +66,7 @@ class TornadioPollingHandlerBase(preflight.PreflightHandler):
 
             self.session = None
 
-    @asynchronous
-    def get(self, session_id):
+    async def get(self, session_id):
         """Default GET handler."""
         raise NotImplementedError()
 
@@ -139,8 +138,7 @@ class TornadioXHRPollingHandler(TornadioPollingHandlerBase):
         # TODO: Move me out, there's no need to read timeout for POST requests
         self._timeout_interval = self.server.settings['xhr_polling_timeout']
 
-    @asynchronous
-    def get(self, session_id):
+    async def get(self, session_id):
         # Get session
         self.session = self._get_session(session_id)
 
@@ -215,8 +213,7 @@ class TornadioHtmlFileHandler(TornadioPollingHandlerBase):
     # Transport name
     name = 'htmlfile'
 
-    @asynchronous
-    def get(self, session_id):
+    async def get(self, session_id):
         # Get session
         self.session = self._get_session(session_id)
 
@@ -268,8 +265,7 @@ class TornadioJSONPHandler(TornadioXHRPollingHandler):
 
         super(TornadioJSONPHandler, self).initialize(server)
 
-    @asynchronous
-    def get(self, session_id):
+    async def get(self, session_id):
         self._index = self.get_argument('i', 0)
 
         super(TornadioJSONPHandler, self).get(session_id)

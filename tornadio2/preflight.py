@@ -20,14 +20,13 @@
 
     Transport protocol router and main entry point for all socket.io clients.
 """
-from tornado.web import RequestHandler, asynchronous
+from tornado.web import RequestHandler
 
 
 class PreflightHandler(RequestHandler):
     """CORS preflight handler"""
 
-    @asynchronous
-    def options(self, *args, **kwargs):
+    async def options(self, *args, **kwargs):
         """XHR cross-domain OPTIONS handler"""
         self.preflight()
         self.finish()
